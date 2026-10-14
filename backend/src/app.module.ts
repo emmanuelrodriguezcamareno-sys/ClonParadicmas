@@ -10,11 +10,11 @@ import { IncubatorsModule } from './incubators/incubators.module';
       inject: [ConfigService],
       useFactory: (c: ConfigService) => ({
         type: 'postgres' as const,
-        host: c.get('DB_HOST', 'localhost'),
+        host: c.get<string>('DB_HOST', 'localhost'),
         port: Number(c.get('DB_PORT', 5432)),
-        username: c.get('DB_USER', 'incubadora'),
-        password: c.get('DB_PASSWORD', 'incubadora'),
-        database: c.get('DB_NAME', 'incubadora'),
+        username: c.get<string>('DB_USER', 'incubadora'),
+        password: c.get<string>('DB_PASSWORD', 'incubadora'),
+        database: c.get<string>('DB_NAME', 'incubadora'),
         autoLoadEntities: true,
         // Solo para desarrollo: crea las tablas automaticamente.
         // En produccion usar migraciones.
