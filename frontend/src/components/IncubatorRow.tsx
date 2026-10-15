@@ -1,3 +1,4 @@
+import { STALE_AFTER_SECONDS } from '../config';
 import type { IncubatorSnapshot, Trend } from '../types';
 import { Sparkline } from './Sparkline';
 
@@ -15,6 +16,12 @@ function levelOf(i: IncubatorSnapshot): 'critical' | 'warning' | 'ok' {
 
 const LEVEL_LABEL = { critical: 'Alarma', warning: 'Atención', ok: 'Normal' } as const;
 
+function formatAge(seconds: number): string {
+  if (seconds < 60) return `${seconds} s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min`;
+  return `${Math.floor(seconds / 3600)} h`;
+}
+
 function Lamp({ on, label }: { on: boolean; label: string }) {
   return (
     <span className={`lamp ${on ? 'lamp-on' : ''}`}>
@@ -24,14 +31,48 @@ function Lamp({ on, label }: { on: boolean; label: string }) {
   );
 }
 
-export function IncubatorRow({ incubator: i }: { incubator: IncubatorSnapshot }) {
+interface Props {
+  incubator: IncubatorSnapshot;
+  now: number;
+}
+
+export function IncubatorRow({ incubator: i, now }: Props) {
+  const ageSeconds = Math.max(0, Math.round((now - new Date(i.updatedAt).getTime()) / 1000));
+  const sourceLabel = i.source === 'esp32' ? 'ESP32 física' : 'Simulada';
+
+  // Sin datos recientes: no se muestran valores viejos ni alarmas.
+  if (ageSeconds > STALE_AFTER_SECONDS) {
+    return (
+      <article className="row row-offline">
+        <div className="cell cell-id">
+          <h2>{i.id}</h2>
+          <p>{sourceLabel}</p>
+        </div>
+        <div className="cell cell-temp">
+          <span className="big">--</span>
+          <span className="unit">°C</span>
+          <p>Sin datos recientes</p>
+        </div>
+        <div className="cell cell-hum">
+          <span className="mid">--</span>
+          <span className="unit">% humedad</span>
+        </div>
+        <div className="cell cell-spark" />
+        <div className="cell cell-state">
+          <span className="status status-offline">Sin señal</span>
+          <p>Última medición hace {formatAge(ageSeconds)}</p>
+        </div>
+      </article>
+    );
+  }
+
   const level = levelOf(i);
   const time = new Date(i.updatedAt).toLocaleTimeString('es');
   return (
     <article className={`row row-${level}`}>
       <div className="cell cell-id">
         <h2>{i.id}</h2>
-        <p>{i.source === 'esp32' ? 'ESP32 física' : 'Simulada'}</p>
+        <p>{sourceLabel}</p>
       </div>
 
       <div className="cell cell-temp">

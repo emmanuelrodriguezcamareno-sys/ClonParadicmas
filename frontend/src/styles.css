@@ -51,3 +51,8 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-
   .big, .mid { transition: color 0.3s; }
 }
 :focus-visible { outline: 3px solid var(--ok); outline-offset: 2px; }
+
+.row-offline { border-left-color: var(--line); opacity: 0.7; }
+.row-offline .big, .row-offline .mid { color: var(--muted); }
+.row-empty { border-style: dashed; border-left-style: solid; }
+.status-offline { color: var(--muted); }
